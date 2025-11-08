@@ -1,15 +1,31 @@
 - slug: vitest-setup
-  goal: "Add Vitest + RTL + a smoke test for app/page.tsx and one component."
-  constraints: { max_loc: 200 }
+  goal: "Install Vitest + RTL + jsdom; add one smoke test for app/page.tsx."
+  constraints: { max_loc: 180 }
 
-- slug: zod-api-guard
-  goal: "Add zod validation for any API route receiving form inputs; include 2 unit tests."
+- slug: zod-roadmap
+  goal: "Add zod to app/api/submit-roadmap/route.ts; return 400 on invalid payloads; add 2 tests."
   constraints: { max_loc: 180 }
 
 - slug: seo-basics
-  goal: "Add robots.txt and sitemap; set sensible <meta> defaults in app/layout.tsx."
+  goal: "Add robots.txt + sitemap route; default <meta> (& canonical) in app/layout.tsx."
   constraints: { max_loc: 200 }
 
 - slug: a11y-sweep
-  goal: "Fix obvious accessibility issues (alt text, label associations) in Header and homepage."
-  constraints: { max_loc: 180 }
+  goal: "Fix alt/labels on landing and header; no layout changes."
+  constraints: { max_loc: 160 }
+
+- slug: schema-org
+  goal: "Add Organization + Website JSON-LD in app/layout.tsx."
+  constraints: { max_loc: 120 }
+
+- slug: perf-preconnect
+  goal: "<link rel='preconnect'> to fonts/CDN; lazy-load below-the-fold images."
+  constraints: { max_loc: 150 }
+
+- slug: copy-polish
+  goal: "Enforce title case + max length in <title> and Open Graph tags."
+  constraints: { max_loc: 140 }
+
+- slug: routing-hygiene
+  goal: "Canonical tags per page; remove duplicate canonical paths."
+  constraints: { max_loc: 160 }

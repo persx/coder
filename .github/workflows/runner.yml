@@ -39,3 +39,12 @@ jobs:
           ANTHROPIC_BUDGET_TOKENS: ${{ env.ANTHROPIC_BUDGET_TOKENS }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: python app/bot.py
+      - name: Notify Slack
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            echo '{"text":"🤖 Claude bot cycle finished. Check draft PRs in persx/persx: https://github.com/persx/persx/pulls"}' \
+            | curl -X POST -H 'Content-type: application/json' --data @- "$SLACK_WEBHOOK_URL" || true
+          fi
