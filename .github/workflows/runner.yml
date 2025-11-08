@@ -24,6 +24,7 @@ jobs:
           echo "SAFEOPS=$SAFEOPS" >> $GITHUB_ENV
           echo "CLAUDE_MODEL=$CLAUDE_MODEL" >> $GITHUB_ENV
           echo "MAX_LOOPS=$MAX_LOOPS" >> $GITHUB_ENV
+          echo "ANTHROPIC_BUDGET_TOKENS=$ANTHROPIC_BUDGET_TOKENS" >> $GITHUB_ENV
       - name: Run bot
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -35,4 +36,6 @@ jobs:
           SAFEOPS: ${{ env.SAFEOPS }}
           CLAUDE_MODEL: ${{ env.CLAUDE_MODEL }}
           MAX_LOOPS: ${{ env.MAX_LOOPS }}
+          ANTHROPIC_BUDGET_TOKENS: ${{ env.ANTHROPIC_BUDGET_TOKENS }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: python app/bot.py

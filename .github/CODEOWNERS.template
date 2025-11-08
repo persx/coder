@@ -1,0 +1,14 @@
+# CODEOWNERS for persx/persx
+# Copy this file to the persx/persx repository at .github/CODEOWNERS
+
+# Core application code requires review
+/app/**           @persx
+/components/**    @persx
+/lib/**           @persx
+
+# Auth and billing are critical - always require human review
+/auth/**          @persx
+/billing/**       @persx
+
+# Database and migrations
+/supabase/**      @persx

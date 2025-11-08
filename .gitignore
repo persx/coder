@@ -1,0 +1,25 @@
+# Python
+.venv/
+venv/
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Env files (secrets)
+.env
+.env.local

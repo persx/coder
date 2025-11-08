@@ -14,6 +14,7 @@ class Env:
     task_file = os.getenv("TASK_FILE","tasks/persx.yaml")
     safeops_file = os.getenv("SAFEOPS","configs/safeops_persx.json")
     loops = int(os.getenv("MAX_LOOPS","10"))
+    budget_tokens = int(os.getenv("ANTHROPIC_BUDGET_TOKENS","0"))
     api_key = os.environ["ANTHROPIC_API_KEY"]
     gh_token = os.environ["GH_TOKEN"]
 
@@ -79,7 +80,36 @@ class Tools:
         pr = gh_api("POST", f"/repos/{Env.owner_repo}/pulls", {
             "title": title, "body": body, "head": branch, "base": Env.pr_base, "draft": True
         })
-        return {"url": pr.get("html_url",""), "number": pr.get("number")}
+
+        # Add bot label to PR and assign reviewer
+        pr_number = pr.get("number")
+        if pr_number:
+            try:
+                gh_api("POST", f"/repos/{Env.owner_repo}/issues/{pr_number}/labels",
+                       {"labels": ["bot"]})
+            except Exception:
+                pass  # Label might not exist yet
+
+            # Assign owner as reviewer
+            try:
+                owner = Env.owner_repo.split('/')[0]
+                gh_api("POST", f"/repos/{Env.owner_repo}/pulls/{pr_number}/requested_reviewers",
+                       {"reviewers": [owner]})
+            except Exception:
+                pass  # Owner might not have access or API might fail
+
+        # Send notification to Slack/Teams if webhook configured
+        webhook_url = os.getenv("SLACK_WEBHOOK_URL") or os.getenv("TEAMS_WEBHOOK_URL")
+        if webhook_url and pr.get("html_url"):
+            try:
+                notification = {
+                    "text": f"🤖 New bot PR: {title}\n{pr['html_url']}\n\n{body[:200]}..."
+                }
+                httpx.post(webhook_url, json=notification, timeout=10)
+            except Exception:
+                pass  # Don't fail PR creation if notification fails
+
+        return {"url": pr.get("html_url",""), "number": pr_number}
 
     def _allowed(self, rel_path: str)->bool:
         from fnmatch import fnmatch
@@ -138,7 +168,8 @@ def main():
         if name=="open_pr": return tools.open_pr(**args)
         return {"error":"unknown tool"}
 
-    for _ in range(Env.loops):
+    total_tokens = 0
+    for loop_num in range(Env.loops):
         resp = client.messages.create(
             model=Env.model,
             system=SYSTEM,
@@ -146,12 +177,20 @@ def main():
             tools=TOOL_DECL,
             messages=messages
         )
+        # Track token usage
+        total_tokens += resp.usage.input_tokens + resp.usage.output_tokens
+        if Env.budget_tokens > 0 and total_tokens > Env.budget_tokens:
+            print(f"Budget exceeded: {total_tokens}/{Env.budget_tokens} tokens")
+            break
+
         part = resp.content[0]
         if part.type == "tool_use":
             result = call_tool(part.name, part.input or {})
             messages.append({"role":"tool","tool_use_id": part.id, "content": json.dumps(result)})
             continue
         break
+
+    print(f"Total tokens used: {total_tokens}")
 
 if __name__ == "__main__":
     main()

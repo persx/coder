@@ -1,10 +1,16 @@
 {
-  "max_loc": 400,
+  "max_loc": 250,
   "forbidden": [
+    "auth/**",
+    "billing/**",
+    "supabase/seed.sql",
     "supabase/migrations/**",
     ".env*",
     "next.config.*",
-    "scripts/**"
+    "scripts/**",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json"
   ],
   "allowed_globs": [
     "app/**",
