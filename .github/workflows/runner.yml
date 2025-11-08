@@ -1,0 +1,38 @@
+name: claude-code-bot
+on:
+  schedule: [{ cron: "*/30 * * * *" }]
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt
+      - name: Load target (persx)
+        run: |
+          set -e
+          export $(cat targets/persx.env | xargs)
+          echo "TARGET_REPO_URL=$TARGET_REPO_URL" >> $GITHUB_ENV
+          echo "TARGET_OWNER_REPO=$TARGET_OWNER_REPO" >> $GITHUB_ENV
+          echo "PR_BASE=$PR_BASE" >> $GITHUB_ENV
+          echo "TASK_FILE=$TASK_FILE" >> $GITHUB_ENV
+          echo "SAFEOPS=$SAFEOPS" >> $GITHUB_ENV
+          echo "CLAUDE_MODEL=$CLAUDE_MODEL" >> $GITHUB_ENV
+          echo "MAX_LOOPS=$MAX_LOOPS" >> $GITHUB_ENV
+      - name: Run bot
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          TARGET_REPO_URL: ${{ env.TARGET_REPO_URL }}
+          TARGET_OWNER_REPO: ${{ env.TARGET_OWNER_REPO }}
+          PR_BASE: ${{ env.PR_BASE }}
+          TASK_FILE: ${{ env.TASK_FILE }}
+          SAFEOPS: ${{ env.SAFEOPS }}
+          CLAUDE_MODEL: ${{ env.CLAUDE_MODEL }}
+          MAX_LOOPS: ${{ env.MAX_LOOPS }}
+        run: python app/bot.py

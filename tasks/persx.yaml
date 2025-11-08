@@ -1,0 +1,15 @@
+- slug: vitest-setup
+  goal: "Add Vitest + RTL + a smoke test for app/page.tsx and one component."
+  constraints: { max_loc: 200 }
+
+- slug: zod-api-guard
+  goal: "Add zod validation for any API route receiving form inputs; include 2 unit tests."
+  constraints: { max_loc: 180 }
+
+- slug: seo-basics
+  goal: "Add robots.txt and sitemap; set sensible <meta> defaults in app/layout.tsx."
+  constraints: { max_loc: 200 }
+
+- slug: a11y-sweep
+  goal: "Fix obvious accessibility issues (alt text, label associations) in Header and homepage."
+  constraints: { max_loc: 180 }

@@ -1,0 +1,17 @@
+{
+  "max_loc": 400,
+  "forbidden": [
+    "supabase/migrations/**",
+    ".env*",
+    "next.config.*",
+    "scripts/**"
+  ],
+  "allowed_globs": [
+    "app/**",
+    "components/**",
+    "lib/**",
+    "types/**",
+    "public/**",
+    "docs/**"
+  ]
+}
