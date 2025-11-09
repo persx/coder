@@ -43,6 +43,9 @@ fi
 # Load environment from targets/persx.env
 export $(cat targets/persx.env | xargs)
 
+# Override model to correct version
+export CLAUDE_MODEL=claude-sonnet-4-20250514
+
 # Override for local mode (no GitHub interactions)
 unset GH_TOKEN  # Disable GitHub API calls
 

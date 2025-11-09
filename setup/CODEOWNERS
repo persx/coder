@@ -1,0 +1,27 @@
+# CODEOWNERS for persx/persx
+#
+# This file defines who must review changes to specific parts of the codebase.
+# Copy this to: .github/CODEOWNERS in the persx/persx repo
+#
+# Learn more: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Core application code requires review
+/app/**           @persx
+/components/**    @persx
+/lib/**           @persx
+
+# Auth and billing are critical - always require owner review
+/auth/**          @persx
+/billing/**       @persx
+
+# Database and migrations - schema changes need careful review
+/supabase/**      @persx
+
+# Configuration files
+/next.config.*    @persx
+/tsconfig.json    @persx
+/package.json     @persx
+
+# CI/CD and scripts
+/.github/**       @persx
+/scripts/**       @persx

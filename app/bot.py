@@ -34,10 +34,10 @@ class Tools:
         self.repo_dir = repo_dir
         self.safeops = safeops
 
-    def read_repo(self, glb: str = "**/*.{ts,tsx,md}")->Dict[str,Any]:
+    def read_repo(self, glob: str = "**/*.{ts,tsx,md}")->Dict[str,Any]:
         root = self.repo_dir
         out = []
-        for p in root.glob(glb):
+        for p in root.glob(glob):
             try:
                 if p.is_file() and p.stat().st_size < 180_000:
                     rel = str(p.relative_to(root))
@@ -142,23 +142,37 @@ def main():
         {"name":"open_pr","description":"Commit changes and open a draft PR.","input_schema":{"type":"object","properties":{"title":{"type":"string"},"body":{"type":"string"},"branch":{"type":"string"}},"required":["title","branch"]}}
     ]
 
-    SYSTEM = textwrap.dedent(f"""        You are a cautious coding agent for web frontends (Next.js/React/TS) and Node services.
-    Respect these guardrails:
+    SYSTEM = textwrap.dedent(f"""You are a cautious coding agent for web frontends (Next.js/React/TS) and Node services.
+Respect these guardrails:
 {json.dumps(safeops)}
 
-    Rules:
-    - Make only tiny, reversible improvements (tests, docs, a11y, SEO, refactors).
-    - Keep diffs under {safeops.get('max_loc', 400)} LOC.
-    - Never touch forbidden globs. If a task requires it, explain and stop.
-    - Always run checks before opening PRs; leave draft PR with risk notes and change summary.
-    """)
+Rules:
+- Make only tiny, reversible improvements (tests, docs, a11y, SEO, refactors).
+- Keep diffs under {safeops.get('max_loc', 400)} LOC.
+- Never touch forbidden globs. If a task requires it, explain and stop.
+- Always run checks before opening PRs; leave draft PR with risk notes and change summary.
+
+IMPORTANT: Use the tools provided. Start by calling read_repo to explore the codebase, then implement ONE task from the backlog.""")
 
     with open(Env.task_file, "r") as f:
         tasks_yaml = f.read()
 
     messages = [{
         "role":"user",
-        "content": f"Target repo: {Env.owner_repo}\nBacklog (choose one tiny task):\n\n{tasks_yaml}"
+        "content": f"""Target repo: {Env.owner_repo}
+
+Backlog (choose ONE tiny task to implement):
+
+{tasks_yaml}
+
+Instructions:
+1. Use read_repo to explore the codebase
+2. Pick the FIRST task from the backlog above
+3. Implement it using write_file
+4. Run run_checks to verify it works
+5. Use open_pr to create a draft PR
+
+Start now by calling read_repo."""
     }]
 
     def call_tool(name, args):
@@ -170,6 +184,7 @@ def main():
 
     total_tokens = 0
     for loop_num in range(Env.loops):
+        print(f"\n[Loop {loop_num + 1}/{Env.loops}] Calling Claude...")
         resp = client.messages.create(
             model=Env.model,
             system=SYSTEM,
@@ -184,13 +199,22 @@ def main():
             break
 
         part = resp.content[0]
+        print(f"[Loop {loop_num + 1}] Response type: {part.type}")
+
         if part.type == "tool_use":
+            print(f"[Loop {loop_num + 1}] Tool: {part.name}")
             result = call_tool(part.name, part.input or {})
-            messages.append({"role":"tool","tool_use_id": part.id, "content": json.dumps(result)})
+            print(f"[Loop {loop_num + 1}] Tool result: {str(result)[:200]}...")
+            messages.append({"role":"assistant","content": resp.content})
+            messages.append({"role":"user","content": [{"type":"tool_result","tool_use_id": part.id, "content": json.dumps(result)}]})
             continue
+
+        # If text response, print it
+        if part.type == "text":
+            print(f"[Loop {loop_num + 1}] Claude says: {part.text[:500]}")
         break
 
-    print(f"Total tokens used: {total_tokens}")
+    print(f"\nTotal tokens used: {total_tokens}")
 
 if __name__ == "__main__":
     main()
